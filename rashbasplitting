@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building the Rashba Effect from the Atom</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #ffffff;
+    color: #111827;
+}
+
+body {
+    overflow: hidden;
+}
+
+/* ---------- MAIN APP ---------- */
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------- TOP BAR ---------- */
+
+.topbar {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 38px;
+    border-bottom: 1px solid #e5e7eb;
+    background: white;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.step-counter {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* ---------- CONTENT ---------- */
+
+.content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.step {
+    position: absolute;
+    inset: 0;
+    padding: 34px 65px 90px;
+    display: none;
+    overflow-y: auto;
+}
+
+.step.active {
+    display: block;
+}
+
+.step-title {
+    text-align: center;
+    font-size: 32px;
+    margin: 5px 0 8px;
+    color: #111827;
+}
+
+.step-subtitle {
+    text-align: center;
+    font-size: 17px;
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+.description {
+    max-width: 900px;
+    margin: 18px auto;
+    text-align: center;
+    font-size: 18px;
+    line-height: 1.55;
+}
+
+/* ---------- NAVIGATION ---------- */
+
+.navigation {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.nav-btn {
+    padding: 11px 23px;
+    border-radius: 7px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.nav-btn:hover {
+    background: #f3f4f6;
+}
+
+.nav-btn.primary {
+    background: #111827;
+    color: white;
+    border-color: #111827;
+}
+
+.nav-btn.primary:hover {
+    background: #374151;
+}
+
+/* ---------- VISUAL CONTAINERS ---------- */
+
+.visual {
+    max-width: 1000px;
+    margin: 0 auto;
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel {
+    max-width: 950px;
+    margin: 20px auto;
+    padding: 20px 25px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.highlight {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 18px 25px;
+    border-left: 4px solid #111827;
+    background: #f9fafb;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+/* ---------- ATOM ---------- */
+
+.atom {
+    width: 310px;
+    height: 310px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nucleus {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: #374151;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    z-index: 3;
+}
+
+.orbit {
+    position: absolute;
+    border: 1px dashed #9ca3af;
+    border-radius: 50%;
+}
+
+.orbit.one {
+    width: 180px;
+    height: 180px;
+}
+
+.orbit.two {
+    width: 275px;
+    height: 275px;
+}
+
+.electron {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #2563eb;
+    border-radius: 50%;
+    z-index: 4;
+}
+
+.electron.e1 {
+    top: 42px;
+    left: 145px;
+}
+
+.electron.e2 {
+    right: 15px;
+    top: 145px;
+}
+
+.electron.e3 {
+    bottom: 38px;
+    left: 145px;
+}
+
+.spin-arrow {
+    position: absolute;
+    font-size: 34px;
+    color: #2563eb;
+    top: 6px;
+    right: 90px;
+}
+
+/* ---------- SOC ---------- */
+
+.flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.flow-box {
+    min-width: 150px;
+    padding: 20px 15px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    text-align: center;
+    background: white;
+    font-weight: 600;
+}
+
+.arrow {
+    font-size: 30px;
+    color: #6b7280;
+}
+
+.equation {
+    text-align: center;
+    font-size: 29px;
+    margin: 22px 0;
+    font-family: Georgia, serif;
+}
+
+.big-equation {
+    font-size: 40px;
+}
+
+/* ---------- SYMMETRY ---------- */
+
+.symmetry-grid {
+    display: flex;
+    justify-content: center;
+    gap: 70px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.structure {
+    width: 260px;
+    height: 240px;
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+}
+
+.atom-center {
+    position: absolute;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: #374151;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    left: 99px;
+    top: 89px;
+    z-index: 2;
+    font-weight: bold;
+}
+
+.ligand {
+    position: absolute;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.l1 { left: 113px; top: 25px; }
+.l2 { left: 113px; bottom: 25px; }
+.l3 { left: 25px; top: 103px; }
+.l4 { right: 25px; top: 103px; }
+
+.asym .l1 {
+    background: #2563eb;
+}
+
+.asym .l4 {
+    background: #111827;
+}
+
+/* ---------- BANDS ---------- */
+
+.band-container {
+    width: 750px;
+    height: 350px;
+    position: relative;
+    border-left: 2px solid #374151;
+    border-bottom: 2px solid #374151;
+}
+
+.axis-label {
+    position: absolute;
+    color: #374151;
+    font-size: 14px;
+}
+
+.axis-energy {
+    left: -48px;
+    top: 5px;
+    transform: rotate(-90deg);
+}
+
+.axis-k {
+    bottom: -35px;
+    right: 350px;
+}
+
+.band {
+    position: absolute;
+    width: 520px;
+    height: 3px;
+    background: #111827;
+    transform-origin: left center;
+}
+
+.parabola {
+    width: 500px;
+    height: 230px;
+    position: absolute;
+    left: 125px;
+    bottom: 0;
+    border-top: 3px solid #111827;
+    border-radius: 50% 50% 0 0;
+    transform: scaleY(0.9);
+}
+
+/* Rashba SVG */
+
+.band-svg {
+    width: 760px;
+    max-width: 100%;
+    height: 360px;
+}
+
+svg text {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ---------- CONTROLS ---------- */
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 20px auto;
+}
+
+.control-btn {
+    padding: 9px 17px;
+    border-radius: 7px;
+    border: 1px solid #d1d5db;
+    background: white;
+    font-size: 14px;
+}
+
+.control-btn.active {
+    background: #111827;
+    color: white;
+}
+
+/* ---------- SPECTRUM ---------- */
+
+.spectrum {
+    width: 760px;
+    max-width: 100%;
+    height: 330px;
+}
+
+.bump {
+    transition: all 0.5s ease;
+}
+
+/* ---------- FINAL MAP ---------- */
+
+.chain {
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+.chain-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.chain-box {
+    padding: 17px 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    background: white;
+    font-weight: 600;
+    text-align: center;
+}
+
+.chain-arrow {
+    font-size: 25px;
+    color: #6b7280;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media(max-width: 800px) {
+
+    .step {
+        padding: 25px 20px 85px;
+    }
+
+    .step-title {
+        font-size: 25px;
+    }
+
+    .description {
+        font-size: 16px;
+    }
+
+    .topbar {
+        padding: 0 18px;
+    }
+
+    .title {
+        font-size: 15px;
+    }
+
+    .symmetry-grid {
+        gap: 20px;
+    }
+
+    .visual {
+        min-height: 280px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+    <div class="topbar">
+        <div class="title">Building the Rashba Effect</div>
+        <div class="step-counter" id="counter">1 / 12</div>
+    </div>
+
+    <div class="content">
+
+        <!-- =====================================================
+             STEP 1
+        ====================================================== -->
+
+        <section class="step active">
+
+            <h1 class="step-title">Start with the Atom</h1>
+
+            <div class="step-subtitle">
+                Before understanding Rashba splitting, understand the electron.
+            </div>
+
+            <div class="visual">
+
+                <div class="atom">
+
+                    <div class="orbit one"></div>
+                    <div class="orbit two"></div>
+
+                    <div class="nucleus">
+                        + nucleus
+                    </div>
+
+                    <div class="electron e1"></div>
+                    <div class="electron e2"></div>
+                    <div class="electron e3"></div>
+
+                    <div class="spin-arrow">↻</div>
+
+                </div>
+
+            </div>
+
+            <div class="description">
+
+                An electron has <b>electric charge</b> and an intrinsic
+                angular momentum called <b>spin</b>.
+
+            </div>
+
+            <div class="highlight">
+
+                <b>First idea:</b>
+                The electron is not simply a tiny charged ball.
+                It also possesses an intrinsic spin degree of freedom.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 2
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">The Electron Feels an Electric Field</h1>
+
+            <div class="step-subtitle">
+                The positively charged nucleus creates an electric field.
+            </div>
+
+            <div class="visual">
+
+                <svg width="600" height="330" viewBox="0 0 600 330">
+
+                    <circle cx="300" cy="165" r="55"
+                            fill="#374151"/>
+
+                    <text x="300" y="171"
+                          text-anchor="middle"
+                          fill="white"
+                          font-size="18">
+                        + nucleus
+                    </text>
+
+                    <g stroke="#9ca3af" stroke-width="2"
+                       marker-end="url(#arrow)">
+
+                        <line x1="300" y1="90"
+                              x2="300" y2="35"/>
+
+                        <line x1="300" y1="240"
+                              x2="300" y2="295"/>
+
+                        <line x1="225" y1="165"
+                              x2="170" y2="165"/>
+
+                        <line x1="375" y1="165"
+                              x2="430" y2="165"/>
+
+                    </g>
+
+                    <defs>
+                        <marker id="arrow"
+                                markerWidth="8"
+                                markerHeight="8"
+                                refX="5"
+                                refY="3"
+                                orient="auto">
+                            <polygon points="0 0, 6 3, 0 6"
+                                     fill="#9ca3af"/>
+                        </marker>
+                    </defs>
+
+                    <circle cx="430" cy="90"
+                            r="11"
+                            fill="#2563eb"/>
+
+                    <text x="450" y="95"
+                          font-size="16">
+                        electron
+                    </text>
+
+                </svg>
+
+            </div>
+
+            <div class="description">
+
+                The electron moves through the strong electric field
+                produced by the nucleus.
+
+            </div>
+
+            <div class="highlight">
+
+                The electric field becomes especially strong close to
+                a <b>heavy nucleus</b>.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 3
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">Spin–Orbit Coupling</h1>
+
+            <div class="step-subtitle">
+                The electron's motion and spin interact.
+            </div>
+
+            <div class="flow">
+
+                <div class="flow-box">
+                    Electric field
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-box">
+                    Electron motion
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-box">
+                    Effective magnetic field
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-box">
+                    Spin interaction
+                </div>
+
+            </div>
+
+            <div class="equation">
+                \(H_{\mathrm{SOC}}\propto\mathbf{L}\cdot\mathbf{S}\)
+            </div>
+
+            <div class="highlight">
+
+                <b>Spin–orbit coupling (SOC)</b> is the interaction between
+                the electron's spin and its orbital motion in the electric
+                field of the nucleus.
+
+            </div>
+
+            <div class="description">
+
+                Heavy elements such as <b>Pb</b> have strong SOC because
+                the electric field near their nuclei is very strong.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 4
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">SOC Alone Is Not Enough</h1>
+
+            <div class="step-subtitle">
+                We now introduce the second ingredient: inversion symmetry.
+            </div>
+
+            <div class="symmetry-grid">
+
+                <div>
+
+                    <div class="structure">
+
+                        <div class="atom-center">Pb</div>
+
+                        <div class="ligand l1">X</div>
+                        <div class="ligand l2">X</div>
+                        <div class="ligand l3">X</div>
+                        <div class="ligand l4">X</div>
+
+                    </div>
+
+                    <p style="text-align:center;">
+                        Symmetric environment
+                    </p>
+
+                </div>
+
+                <div style="font-size:40px;">
+                    ⇄
+                </div>
+
+                <div>
+
+                    <div class="structure">
+
+                        <div class="atom-center">Pb</div>
+
+                        <div class="ligand l1">X</div>
+                        <div class="ligand l2">X</div>
+                        <div class="ligand l3">X</div>
+                        <div class="ligand l4">X</div>
+
+                    </div>
+
+                    <p style="text-align:center;">
+                        Inverted environment
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="equation">
+
+                \(V(\mathbf r)=V(-\mathbf r)\)
+
+            </div>
+
+            <div class="highlight">
+
+                If the structure looks equivalent after inversion,
+                <b>inversion symmetry is preserved</b>.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 5
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">Break Inversion Symmetry</h1>
+
+            <div class="step-subtitle">
+                Now make the environment different in opposite directions.
+            </div>
+
+            <div class="symmetry-grid">
+
+                <div>
+
+                    <div class="structure asym">
+
+                        <div class="atom-center">Pb</div>
+
+                        <div class="ligand l1">X</div>
+                        <div class="ligand l2">X</div>
+                        <div class="ligand l3">X</div>
+                        <div class="ligand l4">I</div>
+
+                    </div>
+
+                    <p style="text-align:center;">
+                        Inversion symmetry broken
+                    </p>
+
+                </div>
+
+                <div style="font-size:40px;">
+                    →
+                </div>
+
+                <div style="max-width:360px;">
+
+                    <div class="panel">
+
+                        <b>Asymmetric environment</b>
+
+                        <p>
+                            The potential is no longer the same in opposite
+                            directions.
+                        </p>
+
+                        <div class="equation">
+                            \[
+                            V(\mathbf r)\neq V(-\mathbf r)
+                            \]
+                        </div>
+
+                        <div class="equation">
+                            \[
+                            \nabla V\neq0
+                            \]
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="highlight">
+
+                The crystal now provides an internal
+                <b>potential gradient</b>.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 6
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">The Two Ingredients Meet</h1>
+
+            <div class="step-subtitle">
+                Rashba physics emerges from their combination.
+            </div>
+
+            <div class="flow">
+
+                <div class="flow-box">
+                    <b>Strong SOC</b>
+                    <br><br>
+                    Spin interacts with orbital motion.
+                </div>
+
+                <div class="arrow">+</div>
+
+                <div class="flow-box">
+                    <b>Inversion asymmetry</b>
+                    <br><br>
+                    The potential has a preferred direction.
+                </div>
+
+            </div>
+
+            <div style="text-align:center;font-size:45px;margin:25px;">
+                ↓
+            </div>
+
+            <div class="flow">
+
+                <div class="flow-box">
+                    Momentum
+                </div>
+
+                <div class="arrow">↔</div>
+
+                <div class="flow-box">
+                    Spin
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-box">
+                    <b>Spin–momentum coupling</b>
+                </div>
+
+            </div>
+
+            <div class="highlight">
+
+                <b>This is the central idea:</b>
+
+                Strong SOC acting in a structure without inversion symmetry
+                produces a momentum-dependent spin interaction.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 7
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">The Rashba Hamiltonian</h1>
+
+            <div class="step-subtitle">
+                The physics can now be written mathematically.
+            </div>
+
+            <div class="equation big-equation">
+
+                \(H_R =
+                \alpha_R
+                (\mathbf{k}\times\hat{\mathbf z})
+                \cdot\boldsymbol{\sigma}\)
+
+            </div>
+
+            <div class="panel">
+
+                <p><b>\(\alpha_R\)</b> — Rashba coupling strength</p>
+
+                <p><b>\(\mathbf{k}\)</b> — electron crystal momentum</p>
+
+                <p><b>\(\hat{\mathbf z}\)</b> — direction associated with
+                the structural asymmetry</p>
+
+                <p><b>\(\boldsymbol{\sigma}\)</b> — spin operators</p>
+
+            </div>
+
+            <div class="highlight">
+
+                The crucial feature is that the spin interaction depends
+                on <b>momentum \(k\)</b>.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 8
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">From One Band to Rashba-Split Bands</h1>
+
+            <div class="step-subtitle">
+                Turn the Rashba interaction on and watch what happens.
+            </div>
+
+            <div class="controls">
+
+                <button class="control-btn active"
+                        id="socOff"
+                        onclick="setBandMode('off')">
+                    SOC OFF
+                </button>
+
+                <button class="control-btn"
+                        id="socOn"
+                        onclick="setBandMode('on')">
+                    SOC + Asymmetry ON
+                </button>
+
+            </div>
+
+            <div style="display:flex;justify-content:center;">
+
+                <svg class="band-svg"
+                     viewBox="0 0 760 360">
+
+                    <line x1="80" y1="300"
+                          x2="720" y2="300"
+                          stroke="#374151"
+                          stroke-width="2"/>
+
+                    <line x1="80" y1="300"
+                          x2="80" y2="35"
+                          stroke="#374151"
+                          stroke-width="2"/>
+
+                    <text x="25" y="50"
+                          font-size="15">
+                        Energy
+                    </text>
+
+                    <text x="700" y="330"
+                          font-size="15">
+                        k
+                    </text>
+
+                    <!-- unsplit -->
+                    <path id="singleBand"
+                          d="M 160 265
+                             Q 380 65 600 265"
+                          fill="none"
+                          stroke="#111827"
+                          stroke-width="4"/>
+
+                    <!-- split bands -->
+
+                    <path id="upperBand"
+                          d="M 160 250
+                             Q 380 35 600 250"
+                          fill="none"
+                          stroke="#2563eb"
+                          stroke-width="4"
+                          opacity="0"/>
+
+                    <path id="lowerBand"
+                          d="M 160 280
+                             Q 380 95 600 280"
+                          fill="none"
+                          stroke="#6b7280"
+                          stroke-width="4"
+                          opacity="0"/>
+
+                    <circle cx="380"
+                            cy="150"
+                            r="6"
+                            fill="#111827"/>
+
+                </svg>
+
+            </div>
+
+            <div class="highlight">
+
+                With the Rashba interaction, the original electronic
+                states separate into two momentum-dependent branches:
+
+                <div class="equation">
+                    \(E_\pm(k)=E_0(k)\pm\alpha_R k\)
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 9
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">The Splitting Is Spin-Dependent</h1>
+
+            <div class="step-subtitle">
+                The two branches carry different spin orientations.
+            </div>
+
+            <div style="display:flex;justify-content:center;">
+
+                <svg class="band-svg"
+                     viewBox="0 0 760 380">
+
+                    <line x1="80" y1="320"
+                          x2="720" y2="320"
+                          stroke="#374151"
+                          stroke-width="2"/>
+
+                    <line x1="80" y1="320"
+                          x2="80" y2="30"
+                          stroke="#374151"
+                          stroke-width="2"/>
+
+                    <path d="M 150 275
+                             Q 370 40 620 250"
+                          fill="none"
+                          stroke="#2563eb"
+                          stroke-width="4"/>
+
+                    <path d="M 150 295
+                             Q 370 105 620 275"
+                          fill="none"
+                          stroke="#6b7280"
+                          stroke-width="4"/>
+
+                    <!-- spin arrows -->
+
+                    <text x="230" y="160"
+                          font-size="28"
+                          fill="#2563eb">
+                        ↑
+                    </text>
+
+                    <text x="300" y="100"
+                          font-size="28"
+                          fill="#2563eb">
+                        ↗
+                    </text>
+
+                    <text x="430" y="110"
+                          font-size="28"
+                          fill="#2563eb">
+                        →
+                    </text>
+
+                    <text x="520" y="160"
+                          font-size="28"
+                          fill="#2563eb">
+                        ↘
+                    </text>
+
+                    <text x="230" y="300"
+                          font-size="28"
+                          fill="#6b7280">
+                        ↓
+                    </text>
+
+                    <text x="320" y="285"
+                          font-size="28"
+                          fill="#6b7280">
+                        ↙
+                    </text>
+
+                    <text x="430" y="285"
+                          font-size="28"
+                          fill="#6b7280">
+                        ←
+                    </text>
+
+                    <text x="520" y="300"
+                          font-size="28"
+                          fill="#6b7280">
+                        ↖
+                    </text>
+
+                    <text x="100" y="50"
+                          font-size="15">
+                        Energy
+                    </text>
+
+                    <text x="700" y="345"
+                          font-size="15">
+                        k
+                    </text>
+
+                </svg>
+
+            </div>
+
+            <div class="highlight">
+
+                Changing momentum changes the preferred spin orientation.
+                This produces a characteristic <b>spin texture</b>
+                around the Rashba-split bands.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 10
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">A Real Perovskite Is More Complicated</h1>
+
+            <div class="step-subtitle">
+                The simple Rashba model is only the beginning.
+            </div>
+
+            <div class="visual">
+
+                <svg width="760"
+                     height="330"
+                     viewBox="0 0 760 330">
+
+                    <!-- Pb atoms -->
+
+                    <g fill="#374151">
+
+                        <circle cx="180" cy="100" r="32"/>
+                        <circle cx="380" cy="100" r="32"/>
+                        <circle cx="580" cy="100" r="32"/>
+
+                        <circle cx="180" cy="240" r="32"/>
+                        <circle cx="380" cy="240" r="32"/>
+                        <circle cx="580" cy="240" r="32"/>
+
+                    </g>
+
+                    <!-- I atoms -->
+
+                    <g fill="#9ca3af">
+
+                        <circle cx="280" cy="100" r="20"/>
+                        <circle cx="480" cy="100" r="20"/>
+
+                        <circle cx="280" cy="240" r="20"/>
+                        <circle cx="480" cy="240" r="20"/>
+
+                        <circle cx="180" cy="170" r="20"/>
+                        <circle cx="380" cy="170" r="20"/>
+                        <circle cx="580" cy="170" r="20"/>
+
+                    </g>
+
+                    <!-- bonds -->
+
+                    <g stroke="#d1d5db"
+                       stroke-width="5">
+
+                        <line x1="212" y1="100"
+                              x2="260" y2="100"/>
+
+                        <line x1="300" y1="100"
+                              x2="348" y2="100"/>
+
+                        <line x1="412" y1="100"
+                              x2="460" y2="100"/>
+
+                        <line x1="500" y1="100"
+                              x2="548" y2="100"/>
+
+                        <line x1="180" y1="132"
+                              x2="180" y2="150"/>
+
+                        <line x1="180" y1="190"
+                              x2="180" y2="208"/>
+
+                        <line x1="380" y1="132"
+                              x2="380" y2="150"/>
+
+                        <line x1="380" y1="190"
+                              x2="380" y2="208"/>
+
+                        <line x1="580" y1="132"
+                              x2="580" y2="150"/>
+
+                        <line x1="580" y1="190"
+                              x2="580" y2="208"/>
+
+                    </g>
+
+                    <text x="180" y="105"
+                          text-anchor="middle"
+                          fill="white">
+                        Pb
+                    </text>
+
+                    <text x="380" y="105"
+                          text-anchor="middle"
+                          fill="white">
+                        Pb
+                    </text>
+
+                    <text x="580" y="105"
+                          text-anchor="middle"
+                          fill="white">
+                        Pb
+                    </text>
+
+                    <text x="280" y="105"
+                          text-anchor="middle"
+                          fill="white">
+                        I
+                    </text>
+
+                    <text x="480" y="105"
+                          text-anchor="middle"
+                          fill="white">
+                        I
+                    </text>
+
+                </svg>
+
+            </div>
+
+            <div class="flow">
+
+                <div class="flow-box">
+                    Pb orbitals
+                </div>
+
+                <div class="arrow">+</div>
+
+                <div class="flow-box">
+                    I orbitals
+                </div>
+
+                <div class="arrow">+</div>
+
+                <div class="flow-box">
+                    Orbital hybridization
+                </div>
+
+                <div class="arrow">+</div>
+
+                <div class="flow-box">
+                    SOC
+                </div>
+
+            </div>
+
+            <div class="highlight">
+
+                A real material contains many orbitals and many interacting
+                electronic states. Therefore its spectrum can be much more
+                complicated than the ideal two-band Rashba picture.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 11
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">Why Can a Secondary Bump Appear?</h1>
+
+            <div class="step-subtitle">
+                The spectrum contains spectral weight from multiple electronic states.
+            </div>
+
+            <div style="display:flex;justify-content:center;">
+
+                <svg class="spectrum"
+                     viewBox="0 0 760 330">
+
+                    <line x1="80" y1="280"
+                          x2="710" y2="280"
+                          stroke="#374151"
+                          stroke-width="2"/>
+
+                    <line x1="80" y1="280"
+                          x2="80" y2="30"
+                          stroke="#374151"
+                          stroke-width="2"/>
+
+                    <!-- secondary bump -->
+
+                    <path class="bump"
+                          d="M 180 280
+                             C 210 280 215 245 235 220
+                             C 255 195 275 240 295 280"
+                          fill="none"
+                          stroke="#6b7280"
+                          stroke-width="6"/>
+
+                    <!-- primary bump -->
+
+                    <path class="bump"
+                          d="M 340 280
+                             C 375 280 390 100 440 75
+                             C 490 100 505 280 555 280"
+                          fill="none"
+                          stroke="#111827"
+                          stroke-width="7"/>
+
+                    <text x="230"
+                          y="205"
+                          font-size="16"
+                          text-anchor="middle">
+                        secondary
+                    </text>
+
+                    <text x="440"
+                          y="65"
+                          font-size="16"
+                          text-anchor="middle">
+                        primary
+                    </text>
+
+                    <text x="20"
+                          y="45"
+                          font-size="15">
+                        Intensity
+                    </text>
+
+                    <text x="660"
+                          y="315"
+                          font-size="15">
+                        Energy
+                    </text>
+
+                </svg>
+
+            </div>
+
+            <div class="flow">
+
+                <div class="flow-box">
+                    Multiple electronic states
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-box">
+                    SOC + hybridization
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="flow-box">
+                    Spectral weight redistributed
+                </div>
+
+            </div>
+
+            <div class="highlight">
+
+                <b>Important:</b>
+
+                The secondary bump should not be interpreted simply as
+                "SOC creates another bump."
+
+                It can arise from the complicated interaction of multiple
+                electronic states, orbital character, hybridization and
+                spin–orbit coupling.
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             STEP 12
+        ====================================================== -->
+
+        <section class="step">
+
+            <h1 class="step-title">The Complete Rashba Mechanism</h1>
+
+            <div class="step-subtitle">
+                Everything we built from the atom now connects.
+            </div>
+
+            <div class="chain">
+
+                <div class="chain-row">
+
+                    <div class="chain-box">
+                        Heavy atom
+                        <br>
+                        Pb
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Strong electric field
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Strong SOC
+                    </div>
+
+                </div>
+
+                <div style="text-align:center;font-size:30px;margin:14px;">
+                    ↓
+                </div>
+
+                <div class="chain-row">
+
+                    <div class="chain-box">
+                        Structural asymmetry
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        \(V(r)\neq V(-r)\)
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        \(\nabla V\neq0\)
+                    </div>
+
+                </div>
+
+                <div style="text-align:center;font-size:30px;margin:14px;">
+                    ↓
+                </div>
+
+                <div class="chain-row">
+
+                    <div class="chain-box">
+                        SOC
+                    </div>
+
+                    <div class="chain-arrow">+</div>
+
+                    <div class="chain-box">
+                        Inversion asymmetry
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Spin–momentum coupling
+                    </div>
+
+                </div>
+
+                <div style="text-align:center;font-size:30px;margin:14px;">
+                    ↓
+                </div>
+
+                <div class="chain-row">
+
+                    <div class="chain-box">
+                        Rashba effect
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Spin-split bands
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Spin texture
+                    </div>
+
+                </div>
+
+                <div style="text-align:center;font-size:30px;margin:14px;">
+                    ↓
+                </div>
+
+                <div class="chain-row">
+
+                    <div class="chain-box">
+                        Real multiorbital material
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Hybridization + many states
+                    </div>
+
+                    <div class="chain-arrow">→</div>
+
+                    <div class="chain-box">
+                        Complex spectral features
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="highlight">
+
+                <b>Core message:</b>
+
+                Rashba splitting is not caused by SOC alone.
+                It emerges from the combination of
+                <b>spin–orbit coupling</b> and
+                <b>broken inversion symmetry</b>.
+                The detailed appearance of real spectra then depends on
+                the material's multiorbital electronic structure.
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <div class="navigation">
+
+        <button class="nav-btn"
+                id="prevBtn"
+                onclick="previousStep()">
+            ← Back
+        </button>
+
+        <button class="nav-btn primary"
+                id="nextBtn"
+                onclick="nextStep()">
+            Next →
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* ==========================================================
+   STEP NAVIGATION
+========================================================== */
+
+const steps = document.querySelectorAll(".step");
+
+let currentStep = 0;
+
+const counter = document.getElementById("counter");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+function showStep(index) {
+
+    if (index < 0) {
+        index = 0;
+    }
+
+    if (index >= steps.length) {
+        index = steps.length - 1;
+    }
+
+    currentStep = index;
+
+    steps.forEach((step, i) => {
+
+        step.classList.toggle(
+            "active",
+            i === currentStep
+        );
+
+    });
+
+    counter.textContent =
+        `${currentStep + 1} / ${steps.length}`;
+
+    prevBtn.disabled =
+        currentStep === 0;
+
+    if (currentStep === steps.length - 1) {
+
+        nextBtn.textContent = "Restart ↻";
+
+    } else {
+
+        nextBtn.textContent = "Next →";
+
+    }
+
+}
+
+function nextStep() {
+
+    if (currentStep === steps.length - 1) {
+
+        showStep(0);
+
+    } else {
+
+        showStep(currentStep + 1);
+
+    }
+
+}
+
+function previousStep() {
+
+    showStep(currentStep - 1);
+
+}
+
+
+/* ==========================================================
+   KEYBOARD NAVIGATION
+========================================================== */
+
+document.addEventListener("keydown", function(event) {
+
+    if (event.key === "ArrowRight" ||
+        event.key === " ") {
+
+        event.preventDefault();
+        nextStep();
+
+    }
+
+    if (event.key === "ArrowLeft") {
+
+        event.preventDefault();
+        previousStep();
+
+    }
+
+});
+
+
+/* ==========================================================
+   RASHBA BAND INTERACTION
+========================================================== */
+
+function setBandMode(mode) {
+
+    const single =
+        document.getElementById("singleBand");
+
+    const upper =
+        document.getElementById("upperBand");
+
+    const lower =
+        document.getElementById("lowerBand");
+
+    const offButton =
+        document.getElementById("socOff");
+
+    const onButton =
+        document.getElementById("socOn");
+
+    if (mode === "off") {
+
+        single.style.opacity = "1";
+
+        upper.style.opacity = "0";
+
+        lower.style.opacity = "0";
+
+        offButton.classList.add("active");
+
+        onButton.classList.remove("active");
+
+    }
+
+    if (mode === "on") {
+
+        single.style.opacity = "0";
+
+        upper.style.opacity = "1";
+
+        lower.style.opacity = "1";
+
+        offButton.classList.remove("active");
+
+        onButton.classList.add("active");
+
+    }
+
+}
+
+
+/* ==========================================================
+   INITIALIZE
+========================================================== */
+
+showStep(0);
+
+</script>
+
+</body>
+</html>
